@@ -27,7 +27,7 @@ const PLAYER_POLL_SLEEP_DURATION: Duration = Duration::from_secs(5);
 fn main() {
     let player_finder = PlayerFinder::new().expect("could not connect to DBus");
 
-    let conn = Connection::connect_to_env().unwrap();
+    let conn = Connection::connect_to_env().expect("could not connect to Wayland server");
     let mut event_queue = conn.new_event_queue();
     let qh = event_queue.handle();
     let display = conn.handle().display();
