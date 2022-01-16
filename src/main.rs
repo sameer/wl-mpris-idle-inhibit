@@ -135,22 +135,36 @@ fn main() {
 
     let mut state = State::default();
     event_queue.blocking_dispatch(&mut state).unwrap();
+    let mut idle_inhibitor = None;
     loop {
-        let active_player = player_finder.find_active().unwrap();
-        if active_player.get_playback_status().unwrap() == PlaybackStatus::Playing {
-            let idle_inhibitor = state
-                .idle_inhibit_manager
-                .as_ref()
-                .unwrap()
-                .create_inhibitor(&mut conn.handle(), state.surf.as_ref().unwrap(), &qh, ())
-                .unwrap();
-            println!("Idle inhibited");
+        let active_player_opt = player_finder
+            .find_all()
+            .unwrap()
+            .drain(..)
+            .find(|p| p.get_playback_status().unwrap() == PlaybackStatus::Playing);
+        if let Some(active_player) = active_player_opt {
+            idle_inhibitor = idle_inhibitor.or_else(|| {
+                Some(
+                    state
+                        .idle_inhibit_manager
+                        .as_ref()
+                        .unwrap()
+                        .create_inhibitor(&mut conn.handle(), state.surf.as_ref().unwrap(), &qh, ())
+                        .unwrap(),
+                )
+            });
+            println!("Idle inhibited by {}", active_player.identity());
+            // Blocks until new events are received.
+            // Guaranteed to (eventually) receive a shutdown event which will break this loop.
             while !active_player.events().unwrap().any(|event| {
                 matches!(
                     event.unwrap(),
                     MprisEvent::PlayerShutDown | MprisEvent::Stopped | MprisEvent::Paused
                 )
             }) {}
+            // Allows immediate decision on whether to destroy idle inhibitor
+            continue;
+        } else if let Some(idle_inhibitor) = idle_inhibitor.as_ref() {
             idle_inhibitor.destroy(&mut conn.handle());
             println!("Idle allowed");
         }
