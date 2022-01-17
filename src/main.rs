@@ -65,8 +65,9 @@ fn main() {
             }) {}
             // Allows immediate decision on whether to destroy idle inhibitor
             continue;
-        } else if let Some(idle_inhibitor) = idle_inhibitor.as_ref() {
-            idle_inhibitor.destroy(&mut conn.handle());
+        } else if let Some(i) = idle_inhibitor.as_ref() {
+            i.destroy(&mut conn.handle());
+            idle_inhibitor = None;
             println!("Idle allowed");
         }
         thread::sleep(PLAYER_POLL_SLEEP_DURATION)
