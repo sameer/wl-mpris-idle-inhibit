@@ -1,9 +1,9 @@
 use std::thread;
 use std::time::Duration;
 
-use mpris::Event as MprisEvent;
 use mpris::PlaybackStatus;
 use mpris::PlayerFinder;
+use mpris::{Event as MprisEvent, FindingError, Player};
 use wayland_client::{
     protocol::{
         __interfaces::WL_COMPOSITOR_INTERFACE,
@@ -38,33 +38,61 @@ fn main() {
     event_queue.blocking_dispatch(&mut state).unwrap();
     let mut idle_inhibitor = None;
     loop {
-        let active_player_opt = player_finder
-            .find_all()
-            .unwrap()
-            .drain(..)
-            .find(|p| p.get_playback_status().unwrap() == PlaybackStatus::Playing);
+        let active_player_opt =
+            find_active_player(&player_finder).expect("error while finding active players");
+
         if let Some(active_player) = active_player_opt {
             idle_inhibitor = idle_inhibitor.or_else(|| {
                 Some(
                     state
                         .idle_inhibit_manager
                         .as_ref()
-                        .unwrap()
-                        .create_inhibitor(&mut conn.handle(), state.surf.as_ref().unwrap(), &qh, ())
-                        .unwrap(),
+                        .expect("idle manager should be present")
+                        .create_inhibitor(
+                            &mut conn.handle(),
+                            state
+                                .surf
+                                .as_ref()
+                                .expect("wayland surface should be present"),
+                            &qh,
+                            (),
+                        )
+                        .expect("could not inhibit idle"),
                 )
             });
             println!("Idle inhibited by {}", active_player.identity());
             // Blocks until new events are received.
             // Guaranteed to (eventually) receive a shutdown event which will break this loop.
-            while !active_player.events().unwrap().any(|event| {
-                matches!(
-                    event.unwrap(),
-                    MprisEvent::PlayerShutDown | MprisEvent::Stopped | MprisEvent::Paused
-                )
-            }) {}
-            // Allows immediate decision on whether to destroy idle inhibitor
-            continue;
+            loop {
+                let events = active_player
+                    .events()
+                    .expect("couldn't watch for player events");
+
+                let mut event_iterator = events.map(|event| {
+                    event.map(|event| {
+                        println!("Received event {:?}", event);
+                        matches!(
+                            event,
+                            MprisEvent::PlayerShutDown | MprisEvent::Stopped | MprisEvent::Paused
+                        )
+                    })
+                });
+
+                let should_allow_idle = event_iterator
+                    .find(|res| matches!(res, Ok(true) | Err(_)))
+                    .unwrap_or_else(|| {
+                        println!("No event ending playback returned, allowing idle");
+                        Ok(true)
+                    })
+                    .unwrap_or_else(|err| {
+                        println!("Error while watching player events, allowing idle: {}", err);
+                        true
+                    });
+
+                if !should_allow_idle {
+                    break;
+                }
+            }
         } else if let Some(i) = idle_inhibitor.as_ref() {
             i.destroy(&mut conn.handle());
             idle_inhibitor = None;
@@ -72,6 +100,19 @@ fn main() {
         }
         thread::sleep(PLAYER_POLL_SLEEP_DURATION)
     }
+}
+
+fn find_active_player(player_finder: &PlayerFinder) -> Result<Option<Player>, FindingError> {
+    player_finder.find_all().map(|mut players| {
+        players.drain(..).find(|p| match p.get_playback_status() {
+            Ok(PlaybackStatus::Playing) => true,
+            Ok(_) => false,
+            Err(e) => {
+                println!("Could not get playback status for {} {}", p.identity(), e);
+                false
+            }
+        })
+    })
 }
 
 #[derive(Default)]
