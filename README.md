@@ -1,8 +1,8 @@
-Inhibits idle during playback by an MPRIS2 player
+Inhibits idle on [Wayland](https://en.wikipedia.org/wiki/Wayland_(display_server_protocol)) during media playback by an [MPRIS2](https://specifications.freedesktop.org/mpris-spec/latest/) player
 
 ## Installation
 
-Archlinux users can install `aur/sway-mpris-idle-inhibit`
+Archlinux users can install [`aur/sway-mpris-idle-inhibit`](https://aur.archlinux.org/packages/sway-mpris-idle-inhibit)
 
 ## Usage
 

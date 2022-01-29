@@ -2,6 +2,7 @@
 name = "sway-mpris-idle-inhibit"
 version = "0.1.1"
 edition = "2021"
+description = "Inhibits idle on Wayland during media playback by an MPRIS2 player"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
