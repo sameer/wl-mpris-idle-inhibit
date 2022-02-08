@@ -25,8 +25,6 @@ use wayland_protocols::unstable::idle_inhibit::v1::client::{
 const PLAYER_POLL_SLEEP_DURATION: Duration = Duration::from_secs(5);
 
 fn main() {
-    let player_finder = PlayerFinder::new().expect("could not connect to DBus");
-
     let conn = Connection::connect_to_env().expect("could not connect to Wayland server");
     let mut event_queue = conn.new_event_queue();
     let qh = event_queue.handle();
@@ -38,6 +36,7 @@ fn main() {
     event_queue.blocking_dispatch(&mut state).unwrap();
     let mut idle_inhibitor = None;
     loop {
+        let player_finder = PlayerFinder::new().expect("could not connect to DBus");
         let active_player_opt =
             find_active_player(&player_finder).expect("error while finding active players");
 
