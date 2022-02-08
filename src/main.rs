@@ -88,7 +88,7 @@ fn main() {
                         true
                     });
 
-                if !should_allow_idle {
+                if should_allow_idle {
                     break;
                 }
             }
