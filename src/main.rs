@@ -96,7 +96,8 @@ fn main() {
         } else if let Some(i) = idle_inhibitor.as_ref() {
             i.destroy(&mut conn.handle());
             idle_inhibitor = None;
-            conn.roundtrip().expect("failed to request destruction of idle inhibitor");
+            conn.roundtrip()
+                .expect("failed to request destruction of idle inhibitor");
             println!("Idle allowed");
         }
         thread::sleep(PLAYER_POLL_SLEEP_DURATION)
