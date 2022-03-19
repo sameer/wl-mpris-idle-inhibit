@@ -42,22 +42,23 @@ fn main() {
 
         if let Some(active_player) = active_player_opt {
             idle_inhibitor = idle_inhibitor.or_else(|| {
-                Some(
-                    state
-                        .idle_inhibit_manager
-                        .as_ref()
-                        .expect("idle manager should be present")
-                        .create_inhibitor(
-                            &mut conn.handle(),
-                            state
-                                .surf
-                                .as_ref()
-                                .expect("wayland surface should be present"),
-                            &qh,
-                            (),
-                        )
-                        .expect("could not inhibit idle"),
-                )
+                let inhibitor = state
+                    .idle_inhibit_manager
+                    .as_ref()
+                    .expect("idle manager should be present")
+                    .create_inhibitor(
+                        &mut conn.handle(),
+                        state
+                            .surf
+                            .as_ref()
+                            .expect("wayland surface should be present"),
+                        &qh,
+                        (),
+                    )
+                    .expect("could not inhibit idle");
+                conn.roundtrip()
+                    .expect("failed to request creating idle inhibitor");
+                Some(inhibitor)
             });
             println!("Idle inhibited by {}", active_player.identity());
             // Blocks until new events are received.
@@ -95,6 +96,7 @@ fn main() {
         } else if let Some(i) = idle_inhibitor.as_ref() {
             i.destroy(&mut conn.handle());
             idle_inhibitor = None;
+            conn.roundtrip().expect("failed to request destruction of idle inhibitor");
             println!("Idle allowed");
         }
         thread::sleep(PLAYER_POLL_SLEEP_DURATION)
@@ -132,27 +134,32 @@ impl Dispatch<WlRegistry> for State {
         conn: &mut ConnectionHandle,
         qh: &QueueHandle<Self>,
     ) {
-        if let wl_registry::Event::Global {
-            name,
-            interface,
-            version,
-        } = event
-        {
-            if interface == ZWP_IDLE_INHIBIT_MANAGER_V1_INTERFACE.name {
+        match event {
+            wl_registry::Event::Global {
+                name,
+                interface,
+                version,
+            } if interface == WL_COMPOSITOR_INTERFACE.name => {
+                let compositor = registry
+                    .bind::<WlCompositor, _>(conn, name, version, qh, ())
+                    .unwrap();
+                self.surf = Some(compositor.create_surface(conn, qh, ()).unwrap());
+                self.compositor = Some(compositor);
+                eprintln!("[{}] {} (v{})", name, interface, version);
+            }
+            wl_registry::Event::Global {
+                name,
+                interface,
+                version,
+            } if interface == ZWP_IDLE_INHIBIT_MANAGER_V1_INTERFACE.name => {
                 let idle_inhibit_manager = registry
                     .bind::<ZwpIdleInhibitManagerV1, _>(conn, name, version, qh, ())
                     .unwrap();
                 self.idle_inhibit_manager = Some(idle_inhibit_manager);
                 eprintln!("[{}] {} (v{})", name, interface, version);
-            } else if interface == WL_COMPOSITOR_INTERFACE.name {
-                let compositor = registry
-                    .bind::<WlCompositor, _>(conn, name, version, qh, ())
-                    .unwrap();
-                let surf = compositor.create_surface(conn, qh, ()).unwrap();
-                self.surf = Some(surf);
-                self.compositor = Some(compositor);
-                eprintln!("[{}] {} (v{})", name, interface, version);
             }
+            // Don't care
+            _ => {}
         }
     }
 }

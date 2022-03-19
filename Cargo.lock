@@ -464,8 +464,8 @@ checksum = "8ccb82d61f80a663efe1f787a51b16b5a51e3314d6ac365b08639f52387b33f3"
 
 [[package]]
 name = "wayland-backend"
-version = "0.1.0-alpha2"
-source = "git+https://github.com/Smithay/wayland-rs.git#ea22f4c12aaf5b0055cf6d2767fc5c85fd99fb6a"
+version = "0.1.0-alpha6"
+source = "git+https://github.com/Smithay/wayland-rs.git#83f2d168a844f7cc262e6b4099d70463970698bc"
 dependencies = [
  "cc",
  "downcast-rs",
@@ -478,8 +478,8 @@ dependencies = [
 
 [[package]]
 name = "wayland-client"
-version = "0.30.0-alpha2"
-source = "git+https://github.com/Smithay/wayland-rs.git#ea22f4c12aaf5b0055cf6d2767fc5c85fd99fb6a"
+version = "0.30.0-alpha6"
+source = "git+https://github.com/Smithay/wayland-rs.git#83f2d168a844f7cc262e6b4099d70463970698bc"
 dependencies = [
  "bitflags",
  "futures-channel",
@@ -492,8 +492,8 @@ dependencies = [
 
 [[package]]
 name = "wayland-protocols"
-version = "0.30.0-alpha2"
-source = "git+https://github.com/Smithay/wayland-rs.git#ea22f4c12aaf5b0055cf6d2767fc5c85fd99fb6a"
+version = "0.30.0-alpha6"
+source = "git+https://github.com/Smithay/wayland-rs.git#83f2d168a844f7cc262e6b4099d70463970698bc"
 dependencies = [
  "bitflags",
  "wayland-backend",
@@ -503,8 +503,8 @@ dependencies = [
 
 [[package]]
 name = "wayland-scanner"
-version = "0.30.0-alpha2"
-source = "git+https://github.com/Smithay/wayland-rs.git#ea22f4c12aaf5b0055cf6d2767fc5c85fd99fb6a"
+version = "0.30.0-alpha6"
+source = "git+https://github.com/Smithay/wayland-rs.git#83f2d168a844f7cc262e6b4099d70463970698bc"
 dependencies = [
  "proc-macro2",
  "quote 1.0.14",
@@ -514,8 +514,8 @@ dependencies = [
 
 [[package]]
 name = "wayland-sys"
-version = "0.30.0-alpha2"
-source = "git+https://github.com/Smithay/wayland-rs.git#ea22f4c12aaf5b0055cf6d2767fc5c85fd99fb6a"
+version = "0.30.0-alpha6"
+source = "git+https://github.com/Smithay/wayland-rs.git#83f2d168a844f7cc262e6b4099d70463970698bc"
 dependencies = [
  "dlib",
  "log",
