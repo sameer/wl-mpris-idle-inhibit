@@ -24,6 +24,10 @@ use wayland_protocols::unstable::idle_inhibit::v1::client::{
 /// will reduce CPU usage while still achieving the desired effect.
 const PLAYER_POLL_SLEEP_DURATION: Duration = Duration::from_secs(5);
 
+/// Error message returned by the playerctld daemon when
+/// there is no active player.
+const PLAYERCTLD_NO_ACTIVE_PLAYER_MESSAGE: &str = "No player is being controlled by playerctld";
+
 fn main() {
     let conn = Connection::connect_to_env().expect("could not connect to Wayland server");
     let mut event_queue = conn.new_event_queue();
@@ -104,9 +108,13 @@ fn main() {
     }
 }
 
+/// Returns the first active player that is found.
+/// 
+/// Returns [Ok(None)] when there are no active players
+/// and the playerctld daemon returns a D-Bus error. 
 fn find_active_player(player_finder: &PlayerFinder) -> Result<Option<Player>, FindingError> {
-    player_finder.find_all().map(|mut players| {
-        players.drain(..).find(|p| match p.get_playback_status() {
+    let res = player_finder.find_all().map(|players| {
+        players.into_iter().find(|p| match p.get_playback_status() {
             Ok(PlaybackStatus::Playing) => true,
             Ok(_) => false,
             Err(e) => {
@@ -114,7 +122,15 @@ fn find_active_player(player_finder: &PlayerFinder) -> Result<Option<Player>, Fi
                 false
             }
         })
-    })
+    });
+    match res {
+        Err(FindingError::DBusError(mpris::DBusError::TransportError(ref err)))
+            if err.message() == Some(PLAYERCTLD_NO_ACTIVE_PLAYER_MESSAGE) =>
+        {
+            Ok(None)
+        }
+        other => other,
+    }
 }
 
 #[derive(Default)]
