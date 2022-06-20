@@ -283,7 +283,7 @@ checksum = "6446ced80d6c486436db5c078dde11a9f73d42b57fb273121e160b84f63d894c"
 
 [[package]]
 name = "sway-mpris-idle-inhibit"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "mpris",
  "wayland-client",
