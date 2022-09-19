@@ -10,5 +10,5 @@ In Sway config (~/.config/sway/config):
 
 ```
 # Inhibit idle during playback
-exec sway-mpris-idle-inhibit
+exec wl-mpris-idle-inhibit
 ```
