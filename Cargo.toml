@@ -1,5 +1,5 @@
 [package]
-name = "sway-mpris-idle-inhibit"
+name = "wl-mpris-idle-inhibit"
 version = "0.1.7"
 edition = "2021"
 description = "Inhibits idle on Wayland during media playback by an MPRIS2 player"
