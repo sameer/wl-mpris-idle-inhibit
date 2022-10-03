@@ -1,6 +1,6 @@
 [package]
 name = "wl-mpris-idle-inhibit"
-version = "0.1.7"
+version = "0.1.8"
 edition = "2021"
 description = "Inhibits idle on Wayland during media playback by an MPRIS2 player"
 license = "MIT OR Apache-2.0"
