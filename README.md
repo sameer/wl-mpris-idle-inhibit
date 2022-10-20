@@ -12,3 +12,8 @@ In Sway config (~/.config/sway/config):
 # Inhibit idle during playback
 exec wl-mpris-idle-inhibit
 ```
+
+## TODOs
+
+- [ ] User specified player ignore list (i.e. music applications)
+- [ ] Investigate feasibility of distinguishing video playback
